@@ -60,8 +60,6 @@
 	}).addTo(map);
 
 
-
-
 // use jquery to load GeoJSON data
 
   $.getJSON("RamallahZones.json", function(RZ) {
@@ -104,9 +102,17 @@
       }).addTo(map);
     });
 	 
- 
+    // Add Birzeit University logo
+    const birzeitIcon = L.icon({
+      iconUrl: 'birzeit_logo.png', // URL of Birzeit University logo
+      iconSize: [50, 50], // Size of the icon
+      iconAnchor: [25, 25], // Anchor point of the icon
+      popupAnchor: [0, -25] // Popup anchor point
+    });
 
-
+    // Add marker for Birzeit University
+    L.marker([31.9045, 35.2036], { icon: birzeitIcon }).addTo(map)
+      .bindPopup("Birzeit University");
 
       // Add layers to map with control options
     const baseLayers = {};
@@ -120,7 +126,8 @@
 
     // Add both layers to the map by default
     zonesLayer.addTo(map);
-    wasteContainersLayer.addTo(map);</script>
+    wasteContainersLayer.addTo(map);
+  </script>
 </body>
 
 </html>
