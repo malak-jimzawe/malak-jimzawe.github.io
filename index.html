@@ -5,153 +5,78 @@
   <title>Ramallah Waste Containers</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
   <style>
+    /* Style the body */
     body {
       margin: 0px;
       height: 100%;
       width: 100%;
     }
+    /* Style the map */
     #map {
       position: absolute;
       width: 100%;
       top: 0px;
       bottom: 0;
     }
-    .logo-container {
-      width: 100px;
-      margin: 10px;
-      background-color: white;
-      padding: 5px;
-      border-radius: 8px;
-      box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
-      text-align: center;
+    /* Style sidebar */
+    #sidebar {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      padding: 10px;
+      background: white;
+      z-index: 1000;
+      border-radius: 5px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     }
-    .logo-container img {
-      width: 80px;
-      height: auto;
-    }
-  </style>
-</head>
-<body>
-  <div id="map"></div>
-  <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  <script>
-    const mapOptions = {
-      zoomSnap: 0.5,
-      center: [31.9045, 35.2045],
-      zoom: 17.5,
-    };
-
-    const map = L.map("map", mapOptions);
-   
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-      subdomains: 'abcd',
-      maxZoom: 20
-    }).addTo(map);
-
-    let zonesLayer, wasteContainersLayer;
-
-    // تحميل بيانات GeoJSON للمناطق
-    $.getJSON("RamallahZones.json", function(RZ) {
-      zonesLayer = L.geoJson(RZ, {
-        style: function(feature) {
-          return {
-            fillColor: "yellow",
-            fillOpacity: 0.3,
-            color: "yellow",
-            weight: 1.0,
-            opacity: 0.7
-          };
-         },
-        onEachFeature: function(feature, layer) {
-          layer.on('click', function(e) {
-           alert("Zone: " + feature.properties.NAME_ENGLI + "\nMAIL_CODE: " + feature.properties.MAIL_CODE);
-          });
-        }
-      }).addTo(map);
-    });
-
-    // تحميل بيانات GeoJSON لحاويات النفايات
-    $.getJSON("wasteContainer.json", function(WC) {
-      wasteContainersLayer = L.geoJson(WC, {
-        pointToLayer: function(feature, latlng) {
-          return L.circleMarker(latlng, {
-            radius: 5,
-            fillColor: "orange",
-            color: "orange",
-            weight: 1,
-            opacity: 1,
-            fillOpacity: 0.8
-          });
-        },
-        onEachFeature: function(feature, layer) {
-          layer.on('click', function(e) {
-            alert("type: " + feature.properties.TYPE_OF_WA);
-          });
-        }
-      }).addTo(map);
-    });
-    
-    // إضافة تحكم في الطبقات بعد تحميل الطبقات
-    setTimeout(function() {
-      const overlays = {
-        "Zones": zonesLayer,
-        "Waste Containers": wasteContainersLayer
-      };
-      L.control.layers({}, overlays).addTo(map);
-    }, 1000);
-
-    // إضافة الشعار كعنصر ثابت على الخريطة
-    const logoControl = L.control({position: 'topright'});
-    logoControl.onAdd = function() {
-      const div = L.DomUtil.create('div', 'logo-container');
-      div.innerHTML = '<img src="birzeit-logo.png" alt="Birzeit University Logo" />';
-      return div;
-    };
-    logoControl.addTo(map);
-  </script>
-</body>
-</html>
-
   </style>
 </head>
 
 <body>
   <!-- the map -->
   <div id="map"></div>
+  <div id="sidebar"></div>
 
-  <!-- Add a link to the Leaflet JavaScript library so you can reference it for building your map -->
+  <!-- Leaflet and jQuery libraries -->
   <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
-
-  <!-- Add a link to the jQuery JavaScript library so you can leverage ajax methods to load your data -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
-  <!-- All JavaScript goes inside the script tags below -->
   <script>
-    // define map options
+    // Initialize map options
     const mapOptions = {
-      zoomSnap: 0.5,  // this allows fractional zooming
-      center: [31.9045, 35.2045], // center the map on the coordinates for Ramallah
-      zoom: 17.5, // set the initial zoom
+      zoomSnap: 0.5,
+      center: [31.9045, 35.2045],
+      zoom: 17.5
     };
 
-    // define the map with the options above
     const map = L.map("map", mapOptions);
    
-    // add a base map to the map
-	L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
- 	 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
- 	 subdomains: 'abcd',
-  	maxZoom: 20
-	}).addTo(map);
+    // Add base map layer
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 20
+    }).addTo(map);
 
+    // Define custom icon for Birzeit University
+    const birzeitIcon = L.icon({
+      iconUrl: 'birzeit_logo.png', // Replace with actual logo URL
+      iconSize: [50, 50],
+      iconAnchor: [25, 25],
+      popupAnchor: [0, -25]
+    });
+    
+    // Add Birzeit University marker
+    L.marker([31.9045, 35.2036], { icon: birzeitIcon }).addTo(map)
+      .bindPopup("Birzeit University");
 
-// use jquery to load GeoJSON data
+    // Initialize layers
+    let zonesLayer, wasteContainersLayer;
 
-  $.getJSON("RamallahZones.json", function(RZ) {
-      L.geoJson(RZ, {
-        style: function(feature) {
+    // Load zones GeoJSON data
+    $.getJSON("RamallahZones.json", function(data) {
+      zonesLayer = L.geoJson(data, {
+        style: function() {
           return {
             fillColor: "yellow",
             fillOpacity: 0.3,
@@ -159,62 +84,77 @@
             weight: 1.0,
             opacity: 0.7
           };
-         },
+        },
         onEachFeature: function(feature, layer) {
-          layer.on('click', function(e) {
-           alert("Zone: " + feature.properties.NAME_ENGLI + "\nMAIL_CODE: " + feature.properties.MAIL_CODE);
+          // Show tooltip on hover and popup on click with additional details
+          layer.bindTooltip("Zone: " + feature.properties.NAME_ENGLI);
+          layer.on('click', function() {
+            document.getElementById("sidebar").innerHTML = `<strong>Zone:</strong> ${feature.properties.NAME_ENGLI}<br>
+                                                            <strong>Mail Code:</strong> ${feature.properties.MAIL_CODE}`;
           });
         }
       }).addTo(map);
     });
 
-  $.getJSON("wasteContainer.json", function(WC) {
-      L.geoJson(WC, {
+    // Load waste containers GeoJSON data
+    $.getJSON("wasteContainer.json", function(data) {
+      wasteContainersLayer = L.geoJson(data, {
         pointToLayer: function(feature, latlng) {
+          // Customize color based on waste type
+          let fillColor = feature.properties.TYPE_OF_WA === "Recyclable" ? "blue" : "green";
           return L.circleMarker(latlng, {
             radius: 5,
-            fillColor: "orange",
-            color: "orange",
+            fillColor: fillColor,
+            color: fillColor,
             weight: 1,
             opacity: 1,
             fillOpacity: 0.8
           });
-  },
+        },
         onEachFeature: function(feature, layer) {
-          layer.on('click', function(e) {
-            alert("type: " + feature.properties.TYPE_OF_WA);
+          // Show tooltip on hover and popup on click with additional details
+          layer.bindTooltip("Waste Type: " + feature.properties.TYPE_OF_WA);
+          layer.on('click', function() {
+            document.getElementById("sidebar").innerHTML = <strong>Waste Type:</strong> ${feature.properties.TYPE_OF_WA};
           });
         }
-
       }).addTo(map);
     });
-	 
-    // Add Birzeit University logo
-    const birzeitIcon = L.icon({
-      iconUrl: 'birzeit_logo.png', // URL of Birzeit University logo
-      iconSize: [50, 50], // Size of the icon
-      iconAnchor: [25, 25], // Anchor point of the icon
-      popupAnchor: [0, -25] // Popup anchor point
-    });
 
-    // Add marker for Birzeit University
-    L.marker([31.9045, 35.2036], { icon: birzeitIcon }).addTo(map)
-      .bindPopup("Birzeit University");
-
-      // Add layers to map with control options
-    const baseLayers = {};
+    // Add layer controls
     const overlays = {
       "Zones": zonesLayer,
       "Waste Containers": wasteContainersLayer
     };
+    L.control.layers({}, overlays).addTo(map);
 
-    // Add layer control to the map
-    L.control.layers(baseLayers, overlays).addTo(map);
+    // Zoom-based visibility for waste containers layer
+    map.on('zoomend', function() {
+      if (map.getZoom() < 15 && map.hasLayer(wasteContainersLayer)) {
+        map.removeLayer(wasteContainersLayer);
+      } else if (map.getZoom() >= 15 && !map.hasLayer(wasteContainersLayer)) {
+        map.addLayer(wasteContainersLayer);
+      }
+    });
 
-    // Add both layers to the map by default
-    zonesLayer.addTo(map);
-    wasteContainersLayer.addTo(map);
+    // User location
+    map.locate({ setView: true, maxZoom: 16 });
+    map.on('locationfound', function(e) {
+      L.marker(e.latlng).addTo(map)
+        .bindPopup("You are here!").openPopup();
+    });
+
+    // Add reset button
+    const resetButton = L.control({ position: 'topright' });
+    resetButton.onAdd = function() {
+      const btn = L.DomUtil.create('button', 'reset-button');
+      btn.innerHTML = 'Reset';
+      btn.style.background = 'white';
+      btn.style.padding = '5px';
+      btn.onclick = () => map.setView([31.9045, 35.2045], 17.5);
+      return btn;
+    };
+    resetButton.addTo(map);
   </script>
 </body>
-
 </html>
