@@ -5,69 +5,83 @@
   <title>Ramallah Waste Containers</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
   <style>
-    /* Style the body */
+    /* Style the body and map */
     body {
       margin: 0px;
       height: 100%;
       width: 100%;
     }
-    /* Style the map */
     #map {
       position: absolute;
       width: 100%;
       top: 0px;
       bottom: 0;
     }
-    /* Style sidebar */
-    #sidebar {
+    /* Style the logo */
+    #logo {
       position: absolute;
       top: 10px;
       left: 10px;
-      padding: 10px;
-      background: white;
       z-index: 1000;
-      border-radius: 5px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      width: 100px;
+    }
+    /* Style the north arrow */
+    #north-arrow {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 1000;
+      width: 50px;
+      opacity: 0.7;
+    }
+    /* Style the toggle button */
+    #toggleButton {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      z-index: 1000;
+      padding: 10px;
+      background-color: white;
+      border: 2px solid #333;
+      cursor: pointer;
     }
   </style>
 </head>
 
 <body>
+  <!-- Map and Images -->
   <div id="map"></div>
-  <div id="sidebar"></div>
+  <img id="logo" src="https://www.birzeit.edu/sites/default/files/logo-en_0.png" alt="Birzeit University Logo">
+  <img id="north-arrow" src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Compass_rose_en.svg/1024px-Compass_rose_en.svg.png" alt="North Arrow">
 
+  <!-- Toggle Button for Waste Containers -->
+  <div id="toggleButton">Toggle Waste Containers</div>
+
+  <!-- Leaflet and jQuery Libraries -->
   <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
   <script>
+    // Define map options
     const mapOptions = {
       zoomSnap: 0.5,
       center: [31.9045, 35.2045],
-      zoom: 17.5
+      zoom: 17.5,
     };
-
     const map = L.map("map", mapOptions);
-   
+
+    // Add base layer
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
       subdomains: 'abcd',
       maxZoom: 20
     }).addTo(map);
 
-    // 1. Add Birzeit University marker
-    const birzeitIcon = L.icon({
-      iconUrl: 'https://example.com/birzeit_logo.png', // Replace with actual logo URL
-      iconSize: [50, 50],
-      iconAnchor: [25, 25],
-      popupAnchor: [0, -25]
-    });
-    L.marker([31.9045, 35.2036], { icon: birzeitIcon }).addTo(map)
-      .bindPopup("Birzeit University");
-
-    // 2. Load zones data with detailed popup
-    $.getJSON("RamallahZones.json", function(data) {
-      zonesLayer = L.geoJson(data, {
-        style: function() {
+    // Add zones layer
+    let zonesLayer;
+    $.getJSON("RamallahZones.json", function(RZ) {
+      zonesLayer = L.geoJson(RZ, {
+        style: function(feature) {
           return {
             fillColor: "yellow",
             fillOpacity: 0.3,
@@ -77,44 +91,44 @@
           };
         },
         onEachFeature: function(feature, layer) {
-          layer.bindTooltip("Zone: " + feature.properties.NAME_ENGLI);
-          layer.on('click', function() {
-            document.getElementById("sidebar").innerHTML = `<strong>Zone:</strong> ${feature.properties.NAME_ENGLI}<br>
-                                                            <strong>Mail Code:</strong> ${feature.properties.MAIL_CODE}`;
+          layer.on('click', function(e) {
+            alert("Zone: " + feature.properties.NAME_ENGLI + "\nMAIL_CODE: " + feature.properties.MAIL_CODE);
           });
         }
       }).addTo(map);
     });
 
-    // 3. Load waste containers data with custom colors
-    $.getJSON("wasteContainer.json", function(data) {
-      wasteContainersLayer = L.geoJson(data, {
+    // Add waste containers layer with red and blue color coding
+    let wasteContainersLayer;
+    $.getJSON("wasteContainer.json", function(WC) {
+      wasteContainersLayer = L.geoJson(WC, {
         pointToLayer: function(feature, latlng) {
-          let fillColor = feature.properties.TYPE_OF_WA === "Recyclable" ? "blue" : "green";
+          const color = feature.properties.TYPE_OF_WA === "Organic" ? "red" : "blue";
           return L.circleMarker(latlng, {
             radius: 5,
-            fillColor: fillColor,
-            color: fillColor,
+            fillColor: color,
+            color: color,
             weight: 1,
             opacity: 1,
             fillOpacity: 0.8
           });
         },
         onEachFeature: function(feature, layer) {
-          layer.bindTooltip("Waste Type: " + feature.properties.TYPE_OF_WA);
-          layer.on('click', function() {
-            document.getElementById("sidebar").innerHTML = <strong>Waste Type:</strong> ${feature.properties.TYPE_OF_WA};
+          layer.on('click', function(e) {
+            alert("Type: " + feature.properties.TYPE_OF_WA);
           });
         }
       }).addTo(map);
     });
 
-    // 4. Locate user
-    map.locate({ setView: true, maxZoom: 16 });
-    map.on('locationfound', function(e) {
-      L.marker(e.latlng).addTo(map)
-        .bindPopup("You are here!").openPopup();
-    });
+    // Toggle Waste Containers Layer
+    document.getElementById("toggleButton").onclick = function() {
+      if (map.hasLayer(wasteContainersLayer)) {
+        map.removeLayer(wasteContainersLayer);
+      } else {
+        map.addLayer(wasteContainersLayer);
+      }
+    };
   </script>
 </body>
 </html>
