@@ -33,16 +33,13 @@
 </head>
 
 <body>
-  <!-- the map -->
   <div id="map"></div>
   <div id="sidebar"></div>
 
-  <!-- Leaflet and jQuery libraries -->
   <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
   <script>
-    // Initialize map options
     const mapOptions = {
       zoomSnap: 0.5,
       center: [31.9045, 35.2045],
@@ -51,29 +48,23 @@
 
     const map = L.map("map", mapOptions);
    
-    // Add base map layer
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
       subdomains: 'abcd',
       maxZoom: 20
     }).addTo(map);
 
-    // Define custom icon for Birzeit University
+    // 1. Add Birzeit University marker
     const birzeitIcon = L.icon({
-      iconUrl: 'birzeit_logo.png', // Replace with actual logo URL
+      iconUrl: 'https://example.com/birzeit_logo.png', // Replace with actual logo URL
       iconSize: [50, 50],
       iconAnchor: [25, 25],
       popupAnchor: [0, -25]
     });
-    
-    // Add Birzeit University marker
     L.marker([31.9045, 35.2036], { icon: birzeitIcon }).addTo(map)
       .bindPopup("Birzeit University");
 
-    // Initialize layers
-    let zonesLayer, wasteContainersLayer;
-
-    // Load zones GeoJSON data
+    // 2. Load zones data with detailed popup
     $.getJSON("RamallahZones.json", function(data) {
       zonesLayer = L.geoJson(data, {
         style: function() {
@@ -86,7 +77,6 @@
           };
         },
         onEachFeature: function(feature, layer) {
-          // Show tooltip on hover and popup on click with additional details
           layer.bindTooltip("Zone: " + feature.properties.NAME_ENGLI);
           layer.on('click', function() {
             document.getElementById("sidebar").innerHTML = `<strong>Zone:</strong> ${feature.properties.NAME_ENGLI}<br>
@@ -96,11 +86,10 @@
       }).addTo(map);
     });
 
-    // Load waste containers GeoJSON data
+    // 3. Load waste containers data with custom colors
     $.getJSON("wasteContainer.json", function(data) {
       wasteContainersLayer = L.geoJson(data, {
         pointToLayer: function(feature, latlng) {
-          // Customize color based on waste type
           let fillColor = feature.properties.TYPE_OF_WA === "Recyclable" ? "blue" : "green";
           return L.circleMarker(latlng, {
             radius: 5,
@@ -112,7 +101,6 @@
           });
         },
         onEachFeature: function(feature, layer) {
-          // Show tooltip on hover and popup on click with additional details
           layer.bindTooltip("Waste Type: " + feature.properties.TYPE_OF_WA);
           layer.on('click', function() {
             document.getElementById("sidebar").innerHTML = <strong>Waste Type:</strong> ${feature.properties.TYPE_OF_WA};
@@ -121,40 +109,12 @@
       }).addTo(map);
     });
 
-    // Add layer controls
-    const overlays = {
-      "Zones": zonesLayer,
-      "Waste Containers": wasteContainersLayer
-    };
-    L.control.layers({}, overlays).addTo(map);
-
-    // Zoom-based visibility for waste containers layer
-    map.on('zoomend', function() {
-      if (map.getZoom() < 15 && map.hasLayer(wasteContainersLayer)) {
-        map.removeLayer(wasteContainersLayer);
-      } else if (map.getZoom() >= 15 && !map.hasLayer(wasteContainersLayer)) {
-        map.addLayer(wasteContainersLayer);
-      }
-    });
-
-    // User location
+    // 4. Locate user
     map.locate({ setView: true, maxZoom: 16 });
     map.on('locationfound', function(e) {
       L.marker(e.latlng).addTo(map)
         .bindPopup("You are here!").openPopup();
     });
-
-    // Add reset button
-    const resetButton = L.control({ position: 'topright' });
-    resetButton.onAdd = function() {
-      const btn = L.DomUtil.create('button', 'reset-button');
-      btn.innerHTML = 'Reset';
-      btn.style.background = 'white';
-      btn.style.padding = '5px';
-      btn.onclick = () => map.setView([31.9045, 35.2045], 17.5);
-      return btn;
-    };
-    resetButton.addTo(map);
   </script>
 </body>
 </html>
