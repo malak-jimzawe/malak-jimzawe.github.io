@@ -1,32 +1,119 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
   <meta charset="utf-8" />
-
-  <!-- Give the page a title -->
   <title>Ramallah Waste Containers</title>
-
-  <!-- Add a link to the Leaflet CSS library so you can reference it for styling your map -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
-
-  <!-- All the CSS code goes inside the style tags below -->
   <style>
-    /* style the body */
     body {
       margin: 0px;
       height: 100%;
       width: 100%;
     }
-
-    /* style the map */
     #map {
       position: absolute;
       width: 100%;
       top: 0px;
       bottom: 0;
     }
+    .logo-container {
+      width: 100px;
+      margin: 10px;
+      background-color: white;
+      padding: 5px;
+      border-radius: 8px;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+      text-align: center;
+    }
+    .logo-container img {
+      width: 80px;
+      height: auto;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script>
+    const mapOptions = {
+      zoomSnap: 0.5,
+      center: [31.9045, 35.2045],
+      zoom: 17.5,
+    };
+
+    const map = L.map("map", mapOptions);
+   
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 20
+    }).addTo(map);
+
+    let zonesLayer, wasteContainersLayer;
+
+    // تحميل بيانات GeoJSON للمناطق
+    $.getJSON("RamallahZones.json", function(RZ) {
+      zonesLayer = L.geoJson(RZ, {
+        style: function(feature) {
+          return {
+            fillColor: "yellow",
+            fillOpacity: 0.3,
+            color: "yellow",
+            weight: 1.0,
+            opacity: 0.7
+          };
+         },
+        onEachFeature: function(feature, layer) {
+          layer.on('click', function(e) {
+           alert("Zone: " + feature.properties.NAME_ENGLI + "\nMAIL_CODE: " + feature.properties.MAIL_CODE);
+          });
+        }
+      }).addTo(map);
+    });
+
+    // تحميل بيانات GeoJSON لحاويات النفايات
+    $.getJSON("wasteContainer.json", function(WC) {
+      wasteContainersLayer = L.geoJson(WC, {
+        pointToLayer: function(feature, latlng) {
+          return L.circleMarker(latlng, {
+            radius: 5,
+            fillColor: "orange",
+            color: "orange",
+            weight: 1,
+            opacity: 1,
+            fillOpacity: 0.8
+          });
+        },
+        onEachFeature: function(feature, layer) {
+          layer.on('click', function(e) {
+            alert("type: " + feature.properties.TYPE_OF_WA);
+          });
+        }
+      }).addTo(map);
+    });
+    
+    // إضافة تحكم في الطبقات بعد تحميل الطبقات
+    setTimeout(function() {
+      const overlays = {
+        "Zones": zonesLayer,
+        "Waste Containers": wasteContainersLayer
+      };
+      L.control.layers({}, overlays).addTo(map);
+    }, 1000);
+
+    // إضافة الشعار كعنصر ثابت على الخريطة
+    const logoControl = L.control({position: 'topright'});
+    logoControl.onAdd = function() {
+      const div = L.DomUtil.create('div', 'logo-container');
+      div.innerHTML = '<img src="birzeit-logo.png" alt="Birzeit University Logo" />';
+      return div;
+    };
+    logoControl.addTo(map);
+  </script>
+</body>
+</html>
+
   </style>
 </head>
 
