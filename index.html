@@ -1,84 +1,80 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
+
   <title>Ramallah Waste Containers</title>
+
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
+
   <style>
-    /* Style the body and map */
     body {
       margin: 0px;
       height: 100%;
       width: 100%;
     }
+
     #map {
       position: absolute;
       width: 100%;
       top: 0px;
       bottom: 0;
     }
-    /* Style the logo */
-    #logo {
+
+    /* زر لتحديد الموقع */
+    #locateBtn {
       position: absolute;
       top: 10px;
       left: 10px;
       z-index: 1000;
-      width: 100px;
-    }
-    /* Style the north arrow */
-    #north-arrow {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      z-index: 1000;
-      width: 50px;
-      opacity: 0.7;
-    }
-    /* Style the toggle button */
-    #toggleButton {
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
-      z-index: 1000;
-      padding: 10px;
-      background-color: white;
-      border: 2px solid #333;
+      padding: 8px;
+      background: white;
+      border-radius: 5px;
       cursor: pointer;
     }
   </style>
 </head>
 
 <body>
-  <!-- Map and Images -->
   <div id="map"></div>
-  <img id="logo" src="https://www.birzeit.edu/sites/default/files/logo-en_0.png" alt="Birzeit University Logo">
-  <img id="north-arrow" src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Compass_rose_en.svg/1024px-Compass_rose_en.svg.png" alt="North Arrow">
 
-  <!-- Toggle Button for Waste Containers -->
-  <div id="toggleButton">Toggle Waste Containers</div>
+  <!-- زر لتحديد النفايات القريبة -->
+  <button id="locateBtn">النفايات القريبة مني</button>
 
-  <!-- Leaflet and jQuery Libraries -->
   <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
   <script>
-    // Define map options
     const mapOptions = {
       zoomSnap: 0.5,
       center: [31.9045, 35.2045],
       zoom: 17.5,
     };
+
     const map = L.map("map", mapOptions);
 
-    // Add base layer
+    // إضافة طبقة الأساس
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
       subdomains: 'abcd',
       maxZoom: 20
     }).addTo(map);
 
-    // Add zones layer
+    // كود الشمال
+    const north = L.control({ position: "topright" });
+    north.onAdd = function(map) {
+      const div = L.DomUtil.create("div", "north");
+      div.innerHTML = '<img src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Compass_rose_pale.svg" style="width:50px; transform: rotate(0deg);">';
+      return div;
+    };
+    north.addTo(map);
+
     let zonesLayer;
+    let wasteContainersLayer;
+
+    // تحميل بيانات المناطق
     $.getJSON("RamallahZones.json", function(RZ) {
       zonesLayer = L.geoJson(RZ, {
         style: function(feature) {
@@ -98,16 +94,14 @@
       }).addTo(map);
     });
 
-    // Add waste containers layer with red and blue color coding
-    let wasteContainersLayer;
+    // تحميل بيانات حاويات النفايات
     $.getJSON("wasteContainer.json", function(WC) {
       wasteContainersLayer = L.geoJson(WC, {
         pointToLayer: function(feature, latlng) {
-          const color = feature.properties.TYPE_OF_WA === "Organic" ? "red" : "blue";
           return L.circleMarker(latlng, {
             radius: 5,
-            fillColor: color,
-            color: color,
+            fillColor: "orange",
+            color: "orange",
             weight: 1,
             opacity: 1,
             fillOpacity: 0.8
@@ -115,20 +109,42 @@
         },
         onEachFeature: function(feature, layer) {
           layer.on('click', function(e) {
-            alert("Type: " + feature.properties.TYPE_OF_WA);
+            alert("type: " + feature.properties.TYPE_OF_WA);
           });
         }
       }).addTo(map);
     });
 
-    // Toggle Waste Containers Layer
-    document.getElementById("toggleButton").onclick = function() {
-      if (map.hasLayer(wasteContainersLayer)) {
-        map.removeLayer(wasteContainersLayer);
-      } else {
-        map.addLayer(wasteContainersLayer);
-      }
+    // مفتاح الخريطة
+    const overlays = {
+      "Zones": zonesLayer,
+      "Waste Containers": wasteContainersLayer
     };
+    L.control.layers(null, overlays).addTo(map);
+
+    // زر لتحديد النفايات القريبة
+    document.getElementById("locateBtn").addEventListener("click", function() {
+      map.locate({ setView: true, maxZoom: 18 });
+
+      map.on('locationfound', function(e) {
+        const radius = 500; // نصف قطر البحث بالأمتار
+
+        // تحديد الحاويات القريبة
+        wasteContainersLayer.eachLayer(function(layer) {
+          if (e.latlng.distanceTo(layer.getLatLng()) < radius) {
+            layer.setStyle({ fillColor: "green", color: "green" });
+          }
+        });
+
+        L.circle(e.latlng, { radius: radius, color: "blue", fillOpacity: 0.1 }).addTo(map)
+          .bindPopup("البحث عن النفايات القريبة ضمن " + radius + " متر").openPopup();
+      });
+
+      map.on('locationerror', function() {
+        alert("تعذر العثور على موقعك.");
+      });
+    });
   </script>
 </body>
+
 </html>
