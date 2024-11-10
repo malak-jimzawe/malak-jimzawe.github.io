@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -19,13 +21,13 @@
       bottom: 0;
     }
 
-    /* Style for the button */
-    #userCountBtn {
+    /* Style for the online users button */
+    #onlineUsersBtn {
       position: absolute;
       top: 20px;
       left: 20px;
       padding: 10px 15px;
-      background-color: #4CAF50;
+      background-color: #007bff;
       color: white;
       font-size: 14px;
       border: none;
@@ -34,24 +36,22 @@
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
 
-    #userCountBtn:hover {
-      background-color: #45a049;
+    #onlineUsersBtn:hover {
+      background-color: #0056b3;
     }
   </style>
 </head>
 
 <body>
-  <!-- the map -->
   <div id="map"></div>
 
-  <!-- Button to show user count -->
-  <button id="userCountBtn">Users Online: 0</button>
+  <!-- Button to show online users count -->
+  <button id="onlineUsersBtn">Users Online: 0</button>
 
   <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
   <script>
-    // define map options
     const mapOptions = {
       zoomSnap: 0.5,
       center: [31.9045, 35.2045],
@@ -66,9 +66,9 @@
       maxZoom: 20
     }).addTo(map);
 
-    $.getJSON("RamallahZones.json", function(RZ) {
+    $.getJSON("RamallahZones.json", function (RZ) {
       L.geoJson(RZ, {
-        style: function(feature) {
+        style: function (feature) {
           return {
             fillColor: "yellow",
             fillOpacity: 0.3,
@@ -77,17 +77,17 @@
             opacity: 0.7
           };
         },
-        onEachFeature: function(feature, layer) {
-          layer.on('click', function(e) {
+        onEachFeature: function (feature, layer) {
+          layer.on('click', function (e) {
             alert("Zone: " + feature.properties.NAME_ENGLI + "\nMAIL_CODE: " + feature.properties.MAIL_CODE);
           });
         }
       }).addTo(map);
     });
 
-    $.getJSON("wasteContainer.json", function(WC) {
+    $.getJSON("wasteContainer.json", function (WC) {
       L.geoJson(WC, {
-        pointToLayer: function(feature, latlng) {
+        pointToLayer: function (feature, latlng) {
           return L.circleMarker(latlng, {
             radius: 5,
             fillColor: "orange",
@@ -97,34 +97,26 @@
             fillOpacity: 0.8
           });
         },
-        onEachFeature: function(feature, layer) {
-          layer.on('click', function(e) {
+        onEachFeature: function (feature, layer) {
+          layer.on('click', function (e) {
             alert("type: " + feature.properties.TYPE_OF_WA);
           });
         }
       }).addTo(map);
     });
 
-    const baseLayers = {};
-    const overlays = {
-      "Zones": zonesLayer,
-      "Waste Containers": wasteContainersLayer
-    };
-
-    L.control.layers(baseLayers, overlays).addTo(map);
-
-    // Simulate getting user count from server
-    function updateUserCount() {
-      // For simulation, we will just use a random number between 1 and 100
+    // Function to update the online users count
+    function updateOnlineUsers() {
+      // Simulate getting the user count (random number for example purposes)
       const userCount = Math.floor(Math.random() * 100) + 1;
-      document.getElementById("userCountBtn").innerText = `Users Online: ${userCount}`;
+      document.getElementById("onlineUsersBtn").innerText = `Users Online: ${userCount}`;
     }
 
-    // Update user count every 5 seconds
-    setInterval(updateUserCount, 5000);
+    // Update the online users count every 5 seconds
+    setInterval(updateOnlineUsers, 5000);
 
     // Initial call to set the user count
-    updateUserCount();
+    updateOnlineUsers();
   </script>
 </body>
 
