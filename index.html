@@ -1,12 +1,13 @@
 
-
 <!DOCTYPE html>
+
 <html lang="en">
 
 <head>
   <meta charset="utf-8" />
   <title>Ramallah Waste Containers</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
+
   <style>
     body {
       margin: 0px;
@@ -21,23 +22,28 @@
       bottom: 0;
     }
 
-    /* Style for the online users button */
-    #onlineUsersBtn {
+    /* لإضافة شعار جامعة بيرزيت في أسفل يسار الشاشة */
+    #birzeit-logo {
       position: absolute;
-      top: 20px;
-      left: 20px;
-      padding: 10px 15px;
-      background-color: #007bff;
-      color: white;
-      font-size: 14px;
-      border: none;
+      bottom: 10px;
+      left: 10px;
+      z-index: 1000;
+      background: white;
+      padding: 5px;
       border-radius: 5px;
-      cursor: pointer;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
 
-    #onlineUsersBtn:hover {
-      background-color: #0056b3;
+    /* لإضافة بوصلة تشير إلى الشمال في أعلى يمين الشاشة */
+    #north-compass {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 1000;
+      width: 50px;
+      height: 50px;
+      background: white;
+      border-radius: 50%;
+      padding: 5px;
     }
   </style>
 </head>
@@ -45,8 +51,15 @@
 <body>
   <div id="map"></div>
 
-  <!-- Button to show online users count -->
-  <button id="onlineUsersBtn">Users Online: 0</button>
+  <!-- إضافة شعار جامعة بيرزيت -->
+  <div id="birzeit-logo">
+    <img src="https://www.birzeit.edu/sites/default/files/BZU-logo-EN.jpg" alt="Birzeit University Logo" width="100">
+  </div>
+
+  <!-- إضافة بوصلة الشمال -->
+  <div id="north-compass">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Compass_rose_pale.svg" alt="North Compass" width="40">
+  </div>
 
   <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -66,9 +79,11 @@
       maxZoom: 20
     }).addTo(map);
 
-    $.getJSON("RamallahZones.json", function (RZ) {
-      L.geoJson(RZ, {
-        style: function (feature) {
+    let zonesLayer, wasteContainersLayer;
+
+    $.getJSON("RamallahZones.json", function(RZ) {
+      zonesLayer = L.geoJson(RZ, {
+        style: function(feature) {
           return {
             fillColor: "yellow",
             fillOpacity: 0.3,
@@ -77,17 +92,17 @@
             opacity: 0.7
           };
         },
-        onEachFeature: function (feature, layer) {
-          layer.on('click', function (e) {
+        onEachFeature: function(feature, layer) {
+          layer.on('click', function(e) {
             alert("Zone: " + feature.properties.NAME_ENGLI + "\nMAIL_CODE: " + feature.properties.MAIL_CODE);
           });
         }
       }).addTo(map);
     });
 
-    $.getJSON("wasteContainer.json", function (WC) {
-      L.geoJson(WC, {
-        pointToLayer: function (feature, latlng) {
+    $.getJSON("wasteContainer.json", function(WC) {
+      wasteContainersLayer = L.geoJson(WC, {
+        pointToLayer: function(feature, latlng) {
           return L.circleMarker(latlng, {
             radius: 5,
             fillColor: "orange",
@@ -97,26 +112,19 @@
             fillOpacity: 0.8
           });
         },
-        onEachFeature: function (feature, layer) {
-          layer.on('click', function (e) {
+        onEachFeature: function(feature, layer) {
+          layer.on('click', function(e) {
             alert("type: " + feature.properties.TYPE_OF_WA);
           });
         }
       }).addTo(map);
     });
 
-    // Function to update the online users count
-    function updateOnlineUsers() {
-      // Simulate getting the user count (random number for example purposes)
-      const userCount = Math.floor(Math.random() * 100) + 1;
-      document.getElementById("onlineUsersBtn").innerText = `Users Online: ${userCount}`;
-    }
-
-    // Update the online users count every 5 seconds
-    setInterval(updateOnlineUsers, 5000);
-
-    // Initial call to set the user count
-    updateOnlineUsers();
+    const overlays = {
+      "Zones": zonesLayer,
+      "Waste Containers": wasteContainersLayer
+    };
+    L.control.layers(null, overlays).addTo(map);
   </script>
 </body>
 
