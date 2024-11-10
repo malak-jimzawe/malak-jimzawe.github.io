@@ -19,41 +19,39 @@
       bottom: 0;
     }
 
-    /* Legend styling */
-    .legend {
-      background: white;
-      padding: 10px;
-      line-height: 1.5;
-      color: #333;
-      font-size: 12px;
-      border-radius: 5px;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    /* Style for the button */
+    #userCountBtn {
       position: absolute;
-      bottom: 20px;
+      top: 20px;
       left: 20px;
-      z-index: 1000;
+      padding: 10px 15px;
+      background-color: #4CAF50;
+      color: white;
+      font-size: 14px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
 
-    .legend .title {
-      font-weight: bold;
-    }
-
-    .legend span {
-      display: inline-block;
-      width: 20px;
-      height: 10px;
-      margin-right: 5px;
+    #userCountBtn:hover {
+      background-color: #45a049;
     }
   </style>
 </head>
 
 <body>
+  <!-- the map -->
   <div id="map"></div>
+
+  <!-- Button to show user count -->
+  <button id="userCountBtn">Users Online: 0</button>
 
   <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
   <script>
+    // define map options
     const mapOptions = {
       zoomSnap: 0.5,
       center: [31.9045, 35.2045],
@@ -68,9 +66,8 @@
       maxZoom: 20
     }).addTo(map);
 
-    let zonesLayer;
     $.getJSON("RamallahZones.json", function(RZ) {
-      zonesLayer = L.geoJson(RZ, {
+      L.geoJson(RZ, {
         style: function(feature) {
           return {
             fillColor: "yellow",
@@ -88,9 +85,8 @@
       }).addTo(map);
     });
 
-    let wasteContainersLayer;
     $.getJSON("wasteContainer.json", function(WC) {
-      wasteContainersLayer = L.geoJson(WC, {
+      L.geoJson(WC, {
         pointToLayer: function(feature, latlng) {
           return L.circleMarker(latlng, {
             radius: 5,
@@ -117,23 +113,18 @@
 
     L.control.layers(baseLayers, overlays).addTo(map);
 
-    function addLegend(map) {
-      const legend = L.control({ position: "bottomleft" });
-
-      legend.onAdd = function() {
-        const div = L.DomUtil.create("div", "legend");
-        div.innerHTML = `
-          <div class="title">Map Legend</div>
-          <div><span style="background: yellow"></span> Zones</div>
-          <div><span style="background: orange; border-radius: 50%"></span> Waste Containers</div>
-        `;
-        return div;
-      };
-
-      legend.addTo(map);
+    // Simulate getting user count from server
+    function updateUserCount() {
+      // For simulation, we will just use a random number between 1 and 100
+      const userCount = Math.floor(Math.random() * 100) + 1;
+      document.getElementById("userCountBtn").innerText = `Users Online: ${userCount}`;
     }
 
-    addLegend(map);
+    // Update user count every 5 seconds
+    setInterval(updateUserCount, 5000);
+
+    // Initial call to set the user count
+    updateUserCount();
   </script>
 </body>
 
