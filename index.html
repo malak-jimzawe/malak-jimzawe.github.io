@@ -1,14 +1,10 @@
 <!DOCTYPE html>
-
 <html lang="en">
 
 <head>
   <meta charset="utf-8" />
-
   <title>Ramallah Waste Containers</title>
-
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
-
   <style>
     body {
       margin: 0px;
@@ -23,25 +19,36 @@
       bottom: 0;
     }
 
-    /* زر لتحديد الموقع */
-    #locateBtn {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      z-index: 1000;
-      padding: 8px;
+    /* Legend styling */
+    .legend {
       background: white;
+      padding: 10px;
+      line-height: 1.5;
+      color: #333;
+      font-size: 12px;
       border-radius: 5px;
-      cursor: pointer;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      z-index: 1000;
+    }
+
+    .legend .title {
+      font-weight: bold;
+    }
+
+    .legend span {
+      display: inline-block;
+      width: 20px;
+      height: 10px;
+      margin-right: 5px;
     }
   </style>
 </head>
 
 <body>
   <div id="map"></div>
-
-  <!-- زر لتحديد النفايات القريبة -->
-  <button id="locateBtn">النفايات القريبة مني</button>
 
   <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -55,26 +62,13 @@
 
     const map = L.map("map", mapOptions);
 
-    // إضافة طبقة الأساس
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
       subdomains: 'abcd',
       maxZoom: 20
     }).addTo(map);
 
-    // كود الشمال
-    const north = L.control({ position: "topright" });
-    north.onAdd = function(map) {
-      const div = L.DomUtil.create("div", "north");
-      div.innerHTML = '<img src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Compass_rose_pale.svg" style="width:50px; transform: rotate(0deg);">';
-      return div;
-    };
-    north.addTo(map);
-
     let zonesLayer;
-    let wasteContainersLayer;
-
-    // تحميل بيانات المناطق
     $.getJSON("RamallahZones.json", function(RZ) {
       zonesLayer = L.geoJson(RZ, {
         style: function(feature) {
@@ -94,7 +88,7 @@
       }).addTo(map);
     });
 
-    // تحميل بيانات حاويات النفايات
+    let wasteContainersLayer;
     $.getJSON("wasteContainer.json", function(WC) {
       wasteContainersLayer = L.geoJson(WC, {
         pointToLayer: function(feature, latlng) {
@@ -115,35 +109,31 @@
       }).addTo(map);
     });
 
-    // مفتاح الخريطة
+    const baseLayers = {};
     const overlays = {
       "Zones": zonesLayer,
       "Waste Containers": wasteContainersLayer
     };
-    L.control.layers(null, overlays).addTo(map);
 
-    // زر لتحديد النفايات القريبة
-    document.getElementById("locateBtn").addEventListener("click", function() {
-      map.locate({ setView: true, maxZoom: 18 });
+    L.control.layers(baseLayers, overlays).addTo(map);
 
-      map.on('locationfound', function(e) {
-        const radius = 500; // نصف قطر البحث بالأمتار
+    function addLegend(map) {
+      const legend = L.control({ position: "bottomleft" });
 
-        // تحديد الحاويات القريبة
-        wasteContainersLayer.eachLayer(function(layer) {
-          if (e.latlng.distanceTo(layer.getLatLng()) < radius) {
-            layer.setStyle({ fillColor: "green", color: "green" });
-          }
-        });
+      legend.onAdd = function() {
+        const div = L.DomUtil.create("div", "legend");
+        div.innerHTML = `
+          <div class="title">Map Legend</div>
+          <div><span style="background: yellow"></span> Zones</div>
+          <div><span style="background: orange; border-radius: 50%"></span> Waste Containers</div>
+        `;
+        return div;
+      };
 
-        L.circle(e.latlng, { radius: radius, color: "blue", fillOpacity: 0.1 }).addTo(map)
-          .bindPopup("البحث عن النفايات القريبة ضمن " + radius + " متر").openPopup();
-      });
+      legend.addTo(map);
+    }
 
-      map.on('locationerror', function() {
-        alert("تعذر العثور على موقعك.");
-      });
-    });
+    addLegend(map);
   </script>
 </body>
 
