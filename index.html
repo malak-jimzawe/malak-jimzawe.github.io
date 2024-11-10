@@ -1,12 +1,12 @@
-
-
 <!DOCTYPE html>
 
 <html lang="en">
 
 <head>
   <meta charset="utf-8" />
+
   <title>Ramallah Waste Containers</title>
+
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
 
   <style>
@@ -23,26 +23,35 @@
       bottom: 0;
     }
 
-    #birzeit-logo {
+    /* Map legend style */
+    .map-legend {
       position: absolute;
       bottom: 10px;
-      left: 10px;
-      z-index: 1000;
-      background: white;
-      padding: 5px;
-      border-radius: 5px;
-    }
-
-    #north-compass {
-      position: absolute;
-      top: 10px;
       right: 10px;
-      z-index: 1000;
-      width: 50px;
-      height: 50px;
       background: white;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+      font-size: 14px;
+      color: #333;
+      line-height: 1.5;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+    .legend-color {
+      width: 15px;
+      height: 15px;
+      margin-right: 8px;
       border-radius: 50%;
-      padding: 5px;
+    }
+    .waste-color {
+      background-color: orange;
+    }
+    .iron-color {
+      background-color: gray;
     }
   </style>
 </head>
@@ -50,12 +59,16 @@
 <body>
   <div id="map"></div>
 
-  <div id="birzeit-logo">
-    <img src="https://www.birzeit.edu/sites/default/files/BZU-logo-EN.jpg" alt="Birzeit University Logo" width="100">
-  </div>
-
-  <div id="north-compass">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Compass_rose_pale.svg" alt="North Compass" width="40">
+  <!-- Map Legend -->
+  <div class="map-legend">
+    <div class="legend-item">
+      <div class="legend-color waste-color"></div>
+      <span>نفايات</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color iron-color"></div>
+      <span>حديد</span>
+    </div>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
@@ -76,10 +89,9 @@
       maxZoom: 20
     }).addTo(map);
 
-    let zonesLayer, wasteContainersLayer;
-
+    // Load GeoJSON data for zones
     $.getJSON("RamallahZones.json", function(RZ) {
-      zonesLayer = L.geoJson(RZ, {
+      L.geoJson(RZ, {
         style: function(feature) {
           return {
             fillColor: "yellow",
@@ -97,13 +109,15 @@
       }).addTo(map);
     });
 
+    // Load GeoJSON data for waste containers
     $.getJSON("wasteContainer.json", function(WC) {
-      wasteContainersLayer = L.geoJson(WC, {
+      L.geoJson(WC, {
         pointToLayer: function(feature, latlng) {
+          let color = feature.properties.TYPE_OF_WA === "iron" ? "gray" : "orange";
           return L.circleMarker(latlng, {
             radius: 5,
-            fillColor: "orange",
-            color: "orange",
+            fillColor: color,
+            color: color,
             weight: 1,
             opacity: 1,
             fillOpacity: 0.8
@@ -116,12 +130,6 @@
         }
       }).addTo(map);
     });
-
-    const overlays = {
-      "Zones": zonesLayer,
-      "Waste Containers": wasteContainersLayer
-    };
-    L.control.layers(null, overlays).addTo(map);
   </script>
 </body>
 
