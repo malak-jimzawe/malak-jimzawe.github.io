@@ -1,5 +1,4 @@
 
-
 <!DOCTYPE html>
 
 <html lang="en">
@@ -31,24 +30,24 @@
       top: 10px;
       right: 10px;
       background: white;
-      padding: 15px;
-      border-radius: 5px;
+      padding: 20px;
+      border-radius: 8px;
       box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-      font-size: 18px; /* تكبير النص */
+      font-size: 24px; /* تكبير النص */
       color: #333;
-      line-height: 1.8;
-      width: 200px; /* توسيع المفتاح */
+      line-height: 2;
+      width: 250px; /* توسيع المفتاح */
       font-weight: bold; /* تكثيف النص */
     }
     .legend-item {
       display: flex;
       align-items: center;
-      margin-bottom: 10px;
+      margin-bottom: 15px;
     }
     .legend-color {
-      width: 25px; /* تكبير الدائرة */
-      height: 25px;
-      margin-right: 10px;
+      width: 40px; /* تكبير الدائرة */
+      height: 40px;
+      margin-right: 15px;
       border-radius: 50%;
     }
     .waste-color {
@@ -119,7 +118,7 @@
         pointToLayer: function(feature, latlng) {
           let color = feature.properties.TYPE_OF_WA === "iron" ? "gray" : "orange";
           return L.circleMarker(latlng, {
-            radius: 5,
+            radius: 7,
             fillColor: color,
             color: color,
             weight: 1,
